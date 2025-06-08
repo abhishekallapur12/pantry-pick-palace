@@ -10,13 +10,7 @@ export const useOrders = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('orders')
-        .select(`
-          *,
-          order_items (
-            *,
-            products (*)
-          )
-        `)
+        .select('*, order_items(*, products(*))')
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -31,17 +25,17 @@ export const useOrders = () => {
         customerPhone: order.customer_phone,
         total: Number(order.total),
         status: order.status as 'pending' | 'confirmed' | 'delivered',
-        createdAt: new Date(order.created_at),
+        createdAt: order.created_at,
         items: order.order_items.map((item: any) => ({
           product: {
             id: item.products.id,
             name: item.products.name,
             price: Number(item.products.price),
-            image: item.products.image || '/placeholder.svg',
+            image: item.products.image,
             category: item.products.category,
             unit: item.products.unit,
-            inStock: item.products.in_stock || false,
-            description: item.products.description || '',
+            inStock: item.products.in_stock,
+            description: item.products.description,
           },
           quantity: item.quantity,
         })),
@@ -55,13 +49,7 @@ export const useCreateOrder = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({
-      customerName,
-      customerEmail,
-      customerPhone,
-      items,
-      total,
-    }: {
+    mutationFn: async (orderData: {
       customerName: string;
       customerEmail: string;
       customerPhone: string;
@@ -76,10 +64,10 @@ export const useCreateOrder = () => {
         .from('orders')
         .insert({
           user_id: user.id,
-          customer_name: customerName,
-          customer_email: customerEmail,
-          customer_phone: customerPhone,
-          total,
+          customer_name: orderData.customerName,
+          customer_email: orderData.customerEmail,
+          customer_phone: orderData.customerPhone,
+          total: orderData.total,
           status: 'pending',
         })
         .select()
@@ -88,7 +76,7 @@ export const useCreateOrder = () => {
       if (orderError) throw orderError;
 
       // Create order items
-      const orderItems = items.map(item => ({
+      const orderItems = orderData.items.map(item => ({
         order_id: order.id,
         product_id: item.product.id,
         quantity: item.quantity,
@@ -106,13 +94,13 @@ export const useCreateOrder = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
       toast({
-        title: "Success!",
-        description: "Order placed successfully.",
+        title: "Order placed successfully!",
+        description: "Your order has been submitted and is being processed.",
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Error",
+        title: "Error placing order",
         description: error.message,
         variant: "destructive",
       });
@@ -120,15 +108,15 @@ export const useCreateOrder = () => {
   });
 };
 
-export const useUpdateOrderStatus = () => {
+export const useUpdateOrder = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+    mutationFn: async ({ id, status }: { id: string; status: Order['status'] }) => {
       const { data, error } = await supabase
         .from('orders')
-        .update({ status })
+        .update({ status, updated_at: new Date().toISOString() })
         .eq('id', id)
         .select()
         .single();

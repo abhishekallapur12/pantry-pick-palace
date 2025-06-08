@@ -1,8 +1,8 @@
 
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { Product, CartItem, Order } from '@/types';
-import { useProducts } from '@/hooks/useProducts';
-import { useOrders } from '@/hooks/useOrders';
+import { useProducts, useCreateProduct, useUpdateProduct, useDeleteProduct } from '@/hooks/useProducts';
+import { useOrders, useUpdateOrder } from '@/hooks/useOrders';
 
 interface StoreState {
   products: Product[];
@@ -80,6 +80,10 @@ interface StoreContextType extends StoreState {
   clearCart: () => void;
   getCartTotal: () => number;
   getCartItemsCount: () => number;
+  addProduct: (product: Omit<Product, 'id'>) => void;
+  updateProduct: (id: string, product: Partial<Product>) => void;
+  deleteProduct: (id: string) => void;
+  updateOrderStatus: (orderId: string, status: Order['status']) => void;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -96,6 +100,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [state, dispatch] = useReducer(storeReducer, initialState);
   const { data: products } = useProducts();
   const { data: orders } = useOrders();
+  
+  const createProductMutation = useCreateProduct();
+  const updateProductMutation = useUpdateProduct();
+  const deleteProductMutation = useDeleteProduct();
+  const updateOrderMutation = useUpdateOrder();
 
   useEffect(() => {
     if (products) {
@@ -133,6 +142,22 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return state.cart.reduce((count, item) => count + item.quantity, 0);
   };
 
+  const addProduct = (product: Omit<Product, 'id'>) => {
+    createProductMutation.mutate(product);
+  };
+
+  const updateProduct = (id: string, product: Partial<Product>) => {
+    updateProductMutation.mutate({ id, ...product } as Product);
+  };
+
+  const deleteProduct = (id: string) => {
+    deleteProductMutation.mutate(id);
+  };
+
+  const updateOrderStatus = (orderId: string, status: Order['status']) => {
+    updateOrderMutation.mutate({ id: orderId, status });
+  };
+
   const value = {
     ...state,
     addToCart,
@@ -141,6 +166,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     clearCart,
     getCartTotal,
     getCartItemsCount,
+    addProduct,
+    updateProduct,
+    deleteProduct,
+    updateOrderStatus,
   };
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
