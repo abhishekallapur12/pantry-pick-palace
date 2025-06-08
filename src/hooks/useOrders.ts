@@ -25,7 +25,7 @@ export const useOrders = () => {
         customerPhone: order.customer_phone,
         total: Number(order.total),
         status: order.status as 'pending' | 'confirmed' | 'delivered',
-        createdAt: order.created_at,
+        createdAt: new Date(order.created_at),
         items: order.order_items.map((item: any) => ({
           product: {
             id: item.products.id,
