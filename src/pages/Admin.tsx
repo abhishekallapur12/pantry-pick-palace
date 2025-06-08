@@ -1,15 +1,52 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Package, ShoppingBag, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useStore } from '@/context/StoreContext';
+import { useAuth } from '@/components/auth/AuthProvider';
 import ProductManagement from '@/components/admin/ProductManagement';
 import OrderManagement from '@/components/admin/OrderManagement';
 
 const Admin = () => {
   const { products, orders } = useStore();
+  const { user, isAdmin, loading } = useAuth();
+
+  // Show loading state while checking auth
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-6 flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show message if not authenticated
+  if (!user) {
+    return (
+      <div className="container mx-auto px-4 py-6 flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
+          <p className="text-muted-foreground">Please sign in to access the admin panel.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show message if not admin
+  if (!isAdmin) {
+    return (
+      <div className="container mx-auto px-4 py-6 flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
+          <p className="text-muted-foreground">You don't have admin privileges to access this page.</p>
+        </div>
+      </div>
+    );
+  }
 
   const totalProducts = products.length;
   const totalOrders = orders.length;
