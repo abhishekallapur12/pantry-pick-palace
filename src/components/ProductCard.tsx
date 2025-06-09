@@ -16,13 +16,19 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   
   const cartItem = cart.find(item => item.product.id === product.id);
   const quantity = cartItem?.quantity || 0;
+  const isOutOfStock = !product.inStock || product.quantity <= 0;
+  const canAddMore = quantity < product.quantity;
 
   const handleAddToCart = () => {
-    addToCart(product);
+    if (canAddMore) {
+      addToCart(product);
+    }
   };
 
   const handleIncrement = () => {
-    updateCartQuantity(product.id, quantity + 1);
+    if (canAddMore) {
+      updateCartQuantity(product.id, quantity + 1);
+    }
   };
 
   const handleDecrement = () => {
@@ -32,11 +38,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   return (
     <Card className="group hover:shadow-lg transition-all duration-300 animate-fade-in">
       <CardContent className="p-4">
-        <div className="aspect-square bg-gray-100 rounded-lg mb-3 flex items-center justify-center">
+        <div className="aspect-square bg-gray-100 rounded-lg mb-3 flex items-center justify-center overflow-hidden">
           <img 
             src={product.image} 
             alt={product.name}
-            className="h-16 w-16 object-cover rounded"
+            className="h-full w-full object-cover"
           />
         </div>
         
@@ -47,11 +53,17 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           </Badge>
           <p className="text-xs text-muted-foreground">{product.unit}</p>
           <p className="font-bold text-lg text-primary">${product.price}</p>
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-muted-foreground">
+              Available: {product.quantity}
+            </span>
+            <div className={`h-2 w-2 rounded-full ${!isOutOfStock ? 'bg-green-500' : 'bg-red-500'}`} />
+          </div>
         </div>
       </CardContent>
 
       <CardFooter className="p-4 pt-0">
-        {!product.inStock ? (
+        {isOutOfStock ? (
           <Button disabled className="w-full" variant="secondary">
             Out of Stock
           </Button>
@@ -79,6 +91,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
               variant="outline" 
               size="sm"
               onClick={handleIncrement}
+              disabled={!canAddMore}
               className="h-8 w-8 p-0"
             >
               <Plus className="h-3 w-3" />

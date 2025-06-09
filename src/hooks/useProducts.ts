@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Product } from '@/types';
@@ -28,6 +27,7 @@ export const useProducts = () => {
         category: product.category,
         unit: product.unit,
         inStock: product.in_stock || false,
+        quantity: product.quantity || 0,
         description: product.description || '',
       })) as Product[];
     },
@@ -49,6 +49,7 @@ export const useCreateProduct = () => {
           category: product.category,
           unit: product.unit,
           in_stock: product.inStock,
+          quantity: product.quantity,
           description: product.description,
         })
         .select()
@@ -89,6 +90,7 @@ export const useUpdateProduct = () => {
           category: product.category,
           unit: product.unit,
           in_stock: product.inStock,
+          quantity: product.quantity,
           description: product.description,
         })
         .eq('id', id)

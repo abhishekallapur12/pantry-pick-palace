@@ -10,6 +10,7 @@ import Header from "@/components/Header";
 import Shop from "@/pages/Shop";
 import Cart from "@/pages/Cart";
 import Admin from "@/pages/Admin";
+import UserProfile from "@/components/UserProfile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
                 <Route path="/" element={<Shop />} />
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/admin" element={<Admin />} />
+                <Route path="/profile" element={<UserProfile />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </div>

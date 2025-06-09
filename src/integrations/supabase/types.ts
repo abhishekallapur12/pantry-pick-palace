@@ -97,6 +97,7 @@ export type Database = {
           in_stock: boolean | null
           name: string
           price: number
+          quantity: number | null
           unit: string
           updated_at: string | null
         }
@@ -109,6 +110,7 @@ export type Database = {
           in_stock?: boolean | null
           name: string
           price: number
+          quantity?: number | null
           unit: string
           updated_at?: string | null
         }
@@ -121,6 +123,7 @@ export type Database = {
           in_stock?: boolean | null
           name?: string
           price?: number
+          quantity?: number | null
           unit?: string
           updated_at?: string | null
         }
@@ -128,28 +131,55 @@ export type Database = {
       }
       profiles: {
         Row: {
+          address_line1: string | null
+          address_line2: string | null
+          city: string | null
+          country: string | null
           created_at: string | null
           email: string | null
           full_name: string | null
           id: string
+          latitude: number | null
+          longitude: number | null
           phone: string | null
+          postal_code: string | null
+          state: string | null
           updated_at: string | null
+          use_current_location: boolean | null
         }
         Insert: {
+          address_line1?: string | null
+          address_line2?: string | null
+          city?: string | null
+          country?: string | null
           created_at?: string | null
           email?: string | null
           full_name?: string | null
           id: string
+          latitude?: number | null
+          longitude?: number | null
           phone?: string | null
+          postal_code?: string | null
+          state?: string | null
           updated_at?: string | null
+          use_current_location?: boolean | null
         }
         Update: {
+          address_line1?: string | null
+          address_line2?: string | null
+          city?: string | null
+          country?: string | null
           created_at?: string | null
           email?: string | null
           full_name?: string | null
           id?: string
+          latitude?: number | null
+          longitude?: number | null
           phone?: string | null
+          postal_code?: string | null
+          state?: string | null
           updated_at?: string | null
+          use_current_location?: boolean | null
         }
         Relationships: []
       }

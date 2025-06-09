@@ -22,11 +22,23 @@ const ProductManagement = () => {
     category: '',
     unit: '',
     inStock: true,
+    quantity: 0,
     description: '',
     image: '/placeholder.svg'
   });
 
   const categories = ['Fruits', 'Vegetables', 'Dairy', 'Bakery', 'Meat', 'Snacks', 'Beverages'];
+  
+  // Sample grocery images for different categories
+  const groceryImages = {
+    'Fruits': 'https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=300&h=300&fit=crop',
+    'Vegetables': 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=300&h=300&fit=crop',
+    'Dairy': 'https://images.unsplash.com/photo-1563636619-e9143da7973b?w=300&h=300&fit=crop',
+    'Bakery': 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=300&h=300&fit=crop',
+    'Meat': 'https://images.unsplash.com/photo-1607623814075-e51df1bdc82f?w=300&h=300&fit=crop',
+    'Snacks': 'https://images.unsplash.com/photo-1621939514649-280e2ee25f60?w=300&h=300&fit=crop',
+    'Beverages': 'https://images.unsplash.com/photo-1544145945-f90425340c7e?w=300&h=300&fit=crop'
+  };
 
   const handleSave = () => {
     if (!formData.name || !formData.category || !formData.unit || formData.price <= 0) {
@@ -38,19 +50,16 @@ const ProductManagement = () => {
       return;
     }
 
+    // Auto-set grocery image based on category if no image provided
+    if (!formData.image || formData.image === '/placeholder.svg') {
+      formData.image = groceryImages[formData.category as keyof typeof groceryImages] || '/placeholder.svg';
+    }
+
     if (editingId) {
       updateProduct(editingId, formData);
-      toast({
-        title: "Product updated",
-        description: "Product has been updated successfully"
-      });
       setEditingId(null);
     } else {
       addProduct(formData as Product);
-      toast({
-        title: "Product added",
-        description: "New product has been added successfully"
-      });
       setShowAddForm(false);
     }
     
@@ -60,6 +69,7 @@ const ProductManagement = () => {
       category: '',
       unit: '',
       inStock: true,
+      quantity: 0,
       description: '',
       image: '/placeholder.svg'
     });
@@ -79,6 +89,7 @@ const ProductManagement = () => {
       category: '',
       unit: '',
       inStock: true,
+      quantity: 0,
       description: '',
       image: '/placeholder.svg'
     });
@@ -86,10 +97,6 @@ const ProductManagement = () => {
 
   const handleDelete = (id: string) => {
     deleteProduct(id);
-    toast({
-      title: "Product deleted",
-      description: "Product has been removed successfully"
-    });
   };
 
   const ProductForm = () => (
@@ -139,6 +146,25 @@ const ProductManagement = () => {
               value={formData.unit}
               onChange={(e) => setFormData({...formData, unit: e.target.value})}
               placeholder="e.g., per kg, per piece"
+            />
+          </div>
+          <div>
+            <Label htmlFor="quantity">Available Quantity</Label>
+            <Input
+              id="quantity"
+              type="number"
+              value={formData.quantity}
+              onChange={(e) => setFormData({...formData, quantity: parseInt(e.target.value) || 0})}
+              placeholder="0"
+            />
+          </div>
+          <div>
+            <Label htmlFor="image">Image URL (optional)</Label>
+            <Input
+              id="image"
+              value={formData.image}
+              onChange={(e) => setFormData({...formData, image: e.target.value})}
+              placeholder="Image URL or leave blank for auto-selection"
             />
           </div>
         </div>
@@ -192,6 +218,13 @@ const ProductManagement = () => {
           <Card key={product.id} className="animate-fade-in">
             <CardContent className="p-4">
               <div className="space-y-2">
+                <div className="aspect-square bg-gray-100 rounded-lg mb-3 flex items-center justify-center overflow-hidden">
+                  <img 
+                    src={product.image} 
+                    alt={product.name}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
                 <div className="flex justify-between items-start">
                   <h3 className="font-medium">{product.name}</h3>
                   <div className="flex space-x-1">
@@ -217,9 +250,14 @@ const ProductManagement = () => {
                 <p className="text-sm text-muted-foreground">{product.category}</p>
                 <p className="text-sm">{product.unit}</p>
                 <p className="font-bold text-primary">${product.price}</p>
-                <div className="flex items-center space-x-2">
-                  <div className={`h-2 w-2 rounded-full ${product.inStock ? 'bg-green-500' : 'bg-red-500'}`} />
-                  <span className="text-xs">{product.inStock ? 'In Stock' : 'Out of Stock'}</span>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Qty: {product.quantity}</span>
+                  <div className="flex items-center space-x-2">
+                    <div className={`h-2 w-2 rounded-full ${product.inStock && product.quantity > 0 ? 'bg-green-500' : 'bg-red-500'}`} />
+                    <span className="text-xs">
+                      {product.inStock && product.quantity > 0 ? 'Available' : 'Out of Stock'}
+                    </span>
+                  </div>
                 </div>
               </div>
             </CardContent>
