@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Plus, Edit, Trash2, Save, X } from 'lucide-react';
+import { Plus, Edit, Trash2, Save, X, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -26,6 +26,8 @@ const ProductManagement = () => {
     description: '',
     image: '/placeholder.svg'
   });
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>('');
 
   const categories = ['Fruits', 'Vegetables', 'Dairy', 'Bakery', 'Meat', 'Snacks', 'Beverages'];
   
@@ -40,6 +42,24 @@ const ProductManagement = () => {
     'Beverages': 'https://images.unsplash.com/photo-1544145945-f90425340c7e?w=300&h=300&fit=crop'
   };
 
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        setImagePreview(result);
+        setFormData(prev => ({ ...prev, image: result }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleInputChange = (field: keyof Product, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
   const handleSave = () => {
     if (!formData.name || !formData.category || !formData.unit || formData.price <= 0) {
       toast({
@@ -50,8 +70,8 @@ const ProductManagement = () => {
       return;
     }
 
-    // Auto-set grocery image based on category if no image provided
-    if (!formData.image || formData.image === '/placeholder.svg') {
+    // Auto-set grocery image based on category if no image provided and no file uploaded
+    if ((!formData.image || formData.image === '/placeholder.svg') && !imageFile) {
       formData.image = groceryImages[formData.category as keyof typeof groceryImages] || '/placeholder.svg';
     }
 
@@ -63,6 +83,10 @@ const ProductManagement = () => {
       setShowAddForm(false);
     }
     
+    resetForm();
+  };
+
+  const resetForm = () => {
     setFormData({
       name: '',
       price: 0,
@@ -73,26 +97,20 @@ const ProductManagement = () => {
       description: '',
       image: '/placeholder.svg'
     });
+    setImageFile(null);
+    setImagePreview('');
   };
 
   const handleEdit = (product: Product) => {
     setEditingId(product.id);
     setFormData(product);
+    setImagePreview(product.image || '');
   };
 
   const handleCancel = () => {
     setEditingId(null);
     setShowAddForm(false);
-    setFormData({
-      name: '',
-      price: 0,
-      category: '',
-      unit: '',
-      inStock: true,
-      quantity: 0,
-      description: '',
-      image: '/placeholder.svg'
-    });
+    resetForm();
   };
 
   const handleDelete = (id: string) => {
@@ -110,8 +128,8 @@ const ProductManagement = () => {
             <Label htmlFor="name">Product Name</Label>
             <Input
               id="name"
-              value={formData.name}
-              onChange={(e) => setFormData({...formData, name: e.target.value})}
+              value={formData.name || ''}
+              onChange={(e) => handleInputChange('name', e.target.value)}
               placeholder="Enter product name"
             />
           </div>
@@ -121,14 +139,14 @@ const ProductManagement = () => {
               id="price"
               type="number"
               step="0.01"
-              value={formData.price}
-              onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value)})}
+              value={formData.price || 0}
+              onChange={(e) => handleInputChange('price', parseFloat(e.target.value) || 0)}
               placeholder="0.00"
             />
           </div>
           <div>
             <Label htmlFor="category">Category</Label>
-            <Select value={formData.category} onValueChange={(value) => setFormData({...formData, category: value})}>
+            <Select value={formData.category || ''} onValueChange={(value) => handleInputChange('category', value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
@@ -143,8 +161,8 @@ const ProductManagement = () => {
             <Label htmlFor="unit">Unit</Label>
             <Input
               id="unit"
-              value={formData.unit}
-              onChange={(e) => setFormData({...formData, unit: e.target.value})}
+              value={formData.unit || ''}
+              onChange={(e) => handleInputChange('unit', e.target.value)}
               placeholder="e.g., per kg, per piece"
             />
           </div>
@@ -153,35 +171,57 @@ const ProductManagement = () => {
             <Input
               id="quantity"
               type="number"
-              value={formData.quantity}
-              onChange={(e) => setFormData({...formData, quantity: parseInt(e.target.value) || 0})}
+              value={formData.quantity || 0}
+              onChange={(e) => handleInputChange('quantity', parseInt(e.target.value) || 0)}
               placeholder="0"
             />
           </div>
           <div>
-            <Label htmlFor="image">Image URL (optional)</Label>
-            <Input
-              id="image"
-              value={formData.image}
-              onChange={(e) => setFormData({...formData, image: e.target.value})}
-              placeholder="Image URL or leave blank for auto-selection"
-            />
+            <Label htmlFor="image">Product Image</Label>
+            <div className="space-y-2">
+              <Input
+                id="image"
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="cursor-pointer"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => document.getElementById('image')?.click()}
+                className="w-full"
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                Upload Image
+              </Button>
+              {imagePreview && (
+                <div className="mt-2">
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    className="w-20 h-20 object-cover rounded border"
+                  />
+                </div>
+              )}
+            </div>
           </div>
         </div>
         <div>
           <Label htmlFor="description">Description</Label>
           <Input
             id="description"
-            value={formData.description}
-            onChange={(e) => setFormData({...formData, description: e.target.value})}
+            value={formData.description || ''}
+            onChange={(e) => handleInputChange('description', e.target.value)}
             placeholder="Product description"
           />
         </div>
         <div className="flex items-center space-x-2">
           <Switch
             id="inStock"
-            checked={formData.inStock}
-            onCheckedChange={(checked) => setFormData({...formData, inStock: checked})}
+            checked={formData.inStock || false}
+            onCheckedChange={(checked) => handleInputChange('inStock', checked)}
           />
           <Label htmlFor="inStock">In Stock</Label>
         </div>
