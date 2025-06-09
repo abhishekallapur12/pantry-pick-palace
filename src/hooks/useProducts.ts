@@ -9,6 +9,7 @@ export const useProducts = () => {
   return useQuery({
     queryKey: ['products'],
     queryFn: async () => {
+      console.log('Fetching products...');
       const { data, error } = await supabase
         .from('products')
         .select('*')
@@ -19,6 +20,7 @@ export const useProducts = () => {
         throw error;
       }
 
+      console.log('Products fetched:', data?.length || 0);
       return data.map(product => ({
         id: product.id,
         name: product.name,
@@ -31,6 +33,8 @@ export const useProducts = () => {
         description: product.description || '',
       })) as Product[];
     },
+    retry: 3,
+    retryDelay: 1000,
   });
 };
 

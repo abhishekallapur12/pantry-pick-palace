@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { Product, CartItem, Order } from '@/types';
 import { useProducts, useCreateProduct, useUpdateProduct, useDeleteProduct } from '@/hooks/useProducts';
@@ -8,11 +7,13 @@ interface StoreState {
   products: Product[];
   cart: CartItem[];
   orders: Order[];
+  isLoading: boolean;
 }
 
 type StoreAction =
   | { type: 'SET_PRODUCTS'; payload: Product[] }
   | { type: 'SET_ORDERS'; payload: Order[] }
+  | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'LOAD_CART' }
   | { type: 'ADD_TO_CART'; payload: Product }
   | { type: 'UPDATE_CART_QUANTITY'; payload: { productId: string; quantity: number } }
@@ -43,6 +44,7 @@ const initialState: StoreState = {
   products: [],
   cart: loadCartFromStorage(),
   orders: [],
+  isLoading: true,
 };
 
 const storeReducer = (state: StoreState, action: StoreAction): StoreState => {
@@ -50,9 +52,11 @@ const storeReducer = (state: StoreState, action: StoreAction): StoreState => {
   
   switch (action.type) {
     case 'SET_PRODUCTS':
-      return { ...state, products: action.payload };
+      return { ...state, products: action.payload, isLoading: false };
     case 'SET_ORDERS':
       return { ...state, orders: action.payload };
+    case 'SET_LOADING':
+      return { ...state, isLoading: action.payload };
     case 'LOAD_CART':
       return { ...state, cart: loadCartFromStorage() };
     case 'ADD_TO_CART':
@@ -119,6 +123,7 @@ interface StoreContextType extends StoreState {
   updateProduct: (id: string, product: Partial<Product>) => void;
   deleteProduct: (id: string) => void;
   updateOrderStatus: (orderId: string, status: Order['status']) => void;
+  refreshProducts: () => void;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -133,7 +138,7 @@ export const useStore = () => {
 
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(storeReducer, initialState);
-  const { data: products } = useProducts();
+  const { data: products, isLoading: productsLoading, refetch: refetchProducts } = useProducts();
   const { data: orders } = useOrders();
   
   const createProductMutation = useCreateProduct();
@@ -147,7 +152,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []);
 
   useEffect(() => {
+    dispatch({ type: 'SET_LOADING', payload: productsLoading });
+  }, [productsLoading]);
+
+  useEffect(() => {
     if (products) {
+      console.log('Setting products in store:', products.length);
       dispatch({ type: 'SET_PRODUCTS', payload: products });
     }
   }, [products]);
@@ -210,6 +220,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     updateOrderMutation.mutate({ id: orderId, status });
   };
 
+  const refreshProducts = () => {
+    console.log('Refreshing products...');
+    refetchProducts();
+  };
+
   const value = {
     ...state,
     addToCart,
@@ -222,9 +237,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     updateProduct,
     deleteProduct,
     updateOrderStatus,
+    refreshProducts,
   };
 
-  console.log('Store state:', { cartLength: state.cart.length, productsLength: state.products.length });
+  console.log('Store state:', { 
+    cartLength: state.cart.length, 
+    productsLength: state.products.length,
+    isLoading: state.isLoading 
+  });
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
 };

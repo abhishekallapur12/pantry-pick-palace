@@ -19,12 +19,12 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <AuthProvider>
-        <StoreProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
+        <BrowserRouter>
+          <StoreProvider>
             <div className="min-h-screen bg-background">
               <Header />
+              <Toaster />
+              <Sonner />
               <Routes>
                 <Route path="/" element={<Shop />} />
                 <Route path="/cart" element={<Cart />} />
@@ -33,8 +33,8 @@ const App = () => (
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </div>
-          </BrowserRouter>
-        </StoreProvider>
+          </StoreProvider>
+        </BrowserRouter>
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
