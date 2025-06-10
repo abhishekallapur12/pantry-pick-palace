@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { ShoppingCart, Store, Settings, User, LogOut } from 'lucide-react';
+import { ShoppingCart, Store, Settings, User, LogOut, UserCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -85,6 +85,13 @@ const Header = () => {
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem disabled>
                     {user.email}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/profile" className="flex items-center">
+                      <UserCircle className="h-4 w-4 mr-2" />
+                      Profile
+                    </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut}>
