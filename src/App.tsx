@@ -21,17 +21,24 @@ const App = () => (
       <AuthProvider>
         <BrowserRouter>
           <StoreProvider>
-            <div className="min-h-screen bg-background">
-              <Header />
-              <Toaster />
-              <Sonner />
-              <Routes>
-                <Route path="/" element={<Shop />} />
-                <Route path="/cart" element={<Cart />} />
-                <Route path="/admin" element={<Admin />} />
-                <Route path="/profile" element={<UserProfile />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+            <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+              {/* Background Pattern */}
+              <div className="fixed inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none"></div>
+              
+              <div className="relative z-10">
+                <Header />
+                <main className="container mx-auto px-4 py-8">
+                  <Toaster />
+                  <Sonner />
+                  <Routes>
+                    <Route path="/" element={<Shop />} />
+                    <Route path="/cart" element={<Cart />} />
+                    <Route path="/admin" element={<Admin />} />
+                    <Route path="/profile" element={<UserProfile />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </main>
+              </div>
             </div>
           </StoreProvider>
         </BrowserRouter>

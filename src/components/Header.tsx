@@ -26,20 +26,25 @@ const Header = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-14 items-center justify-between px-4 md:px-6">
-          <Link to="/" className="flex items-center space-x-2">
-            <Store className="h-6 w-6 text-primary" />
-            <span className="text-xl font-bold text-primary">FreshMart</span>
+      <header className="sticky top-0 z-50 w-full border-b bg-gradient-to-r from-primary/10 via-background to-primary/5 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 shadow-sm">
+        <div className="container flex h-16 items-center justify-between px-4 md:px-6">
+          <Link to="/" className="flex items-center space-x-3 group">
+            <div className="p-2 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors">
+              <Store className="h-6 w-6 text-primary" />
+            </div>
+            <span className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+              FreshMart
+            </span>
           </Link>
 
-          <nav className="flex items-center space-x-4">
+          <nav className="flex items-center space-x-2">
             <Link to="/">
               <Button 
                 variant={location.pathname === '/' ? 'default' : 'ghost'} 
                 size="sm"
-                className="animate-fade-in"
+                className="animate-fade-in hover:scale-105 transition-all duration-200"
               >
+                <Store className="h-4 w-4 mr-2" />
                 Shop
               </Button>
             </Link>
@@ -48,13 +53,14 @@ const Header = () => {
               <Button 
                 variant={location.pathname === '/cart' ? 'default' : 'ghost'} 
                 size="sm"
-                className="animate-fade-in"
+                className="animate-fade-in hover:scale-105 transition-all duration-200"
               >
-                <ShoppingCart className="h-4 w-4" />
+                <ShoppingCart className="h-4 w-4 mr-2" />
+                Cart
                 {cartItemsCount > 0 && (
                   <Badge 
                     variant="destructive" 
-                    className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs animate-scale-in"
+                    className="absolute -top-2 -right-2 h-6 w-6 flex items-center justify-center p-0 text-xs animate-pulse shadow-lg"
                   >
                     {cartItemsCount}
                   </Badge>
@@ -67,9 +73,9 @@ const Header = () => {
                 <Button 
                   variant={location.pathname.startsWith('/admin') ? 'default' : 'ghost'} 
                   size="sm"
-                  className="animate-fade-in"
+                  className="animate-fade-in hover:scale-105 transition-all duration-200"
                 >
-                  <Settings className="h-4 w-4" />
+                  <Settings className="h-4 w-4 mr-2" />
                   Admin
                 </Button>
               </Link>
@@ -78,23 +84,25 @@ const Header = () => {
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="animate-fade-in">
-                    <User className="h-4 w-4" />
+                  <Button variant="ghost" size="sm" className="animate-fade-in hover:scale-105 transition-all duration-200">
+                    <div className="p-1 rounded-full bg-primary/10">
+                      <User className="h-4 w-4" />
+                    </div>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem disabled>
+                <DropdownMenuContent align="end" className="w-56 bg-background/95 backdrop-blur-sm border border-border/50 shadow-xl">
+                  <DropdownMenuItem disabled className="text-muted-foreground font-medium">
                     {user.email}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link to="/profile" className="flex items-center">
-                      <UserCircle className="h-4 w-4 mr-2" />
+                    <Link to="/profile" className="flex items-center hover:bg-primary/5 transition-colors">
+                      <UserCircle className="h-4 w-4 mr-2 text-primary" />
                       Profile
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleSignOut}>
+                  <DropdownMenuItem onClick={handleSignOut} className="hover:bg-destructive/5 text-destructive focus:text-destructive">
                     <LogOut className="h-4 w-4 mr-2" />
                     Sign Out
                   </DropdownMenuItem>
@@ -102,12 +110,12 @@ const Header = () => {
               </DropdownMenu>
             ) : (
               <Button 
-                variant="ghost" 
+                variant="outline" 
                 size="sm" 
                 onClick={() => setShowLoginModal(true)}
-                className="animate-fade-in"
+                className="animate-fade-in hover:scale-105 transition-all duration-200 border-primary/20 hover:border-primary/40"
               >
-                <User className="h-4 w-4" />
+                <User className="h-4 w-4 mr-2" />
                 Sign In
               </Button>
             )}
