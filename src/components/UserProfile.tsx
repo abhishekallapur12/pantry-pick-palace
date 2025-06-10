@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { MapPin, Save, Navigation } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,6 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
 import { UserProfile as UserProfileType } from '@/types';
 import { useToast } from '@/hooks/use-toast';
+import OrderHistory from '@/components/OrderHistory';
 
 const UserProfile = () => {
   const { data: profile, isLoading } = useProfile();
@@ -74,7 +74,7 @@ const UserProfile = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-6">
+    <div className="container mx-auto px-4 py-6 space-y-6">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -197,6 +197,8 @@ const UserProfile = () => {
           </div>
         </CardContent>
       </Card>
+
+      <OrderHistory />
     </div>
   );
 };
