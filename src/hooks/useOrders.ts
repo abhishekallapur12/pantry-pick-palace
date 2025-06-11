@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Order, CartItem } from '@/types';
@@ -45,7 +44,7 @@ export const useOrders = () => {
   });
 };
 
-export const useCreateOrder = () => {
+export const useCreateOrder = (updateProductQuantity?: (productId: string, newQuantity: number) => void) => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -57,6 +56,7 @@ export const useCreateOrder = () => {
       items: CartItem[];
       total: number;
     }) => {
+      console.log('Creating order with data:', orderData);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
@@ -105,7 +105,7 @@ export const useCreateOrder = () => {
 
         if (itemError) throw itemError;
 
-        // Update product quantity - get current quantity first, then update
+        // Get current quantity first, then update
         const { data: currentProduct } = await supabase
           .from('products')
           .select('quantity')
@@ -123,16 +123,20 @@ export const useCreateOrder = () => {
             .eq('id', item.product.id);
 
           if (updateError) throw updateError;
+
+          // Immediately update the frontend state
+          if (updateProductQuantity) {
+            updateProductQuantity(item.product.id, newQuantity);
+          }
         }
       }
 
       return order;
     },
     onSuccess: () => {
-      // Invalidate both orders and products queries to refresh the data
+      // Invalidate queries to refresh the data from server
       queryClient.invalidateQueries({ queryKey: ['orders'] });
       queryClient.invalidateQueries({ queryKey: ['products'] });
-      // Also invalidate user orders
       queryClient.invalidateQueries({ queryKey: ['user-orders'] });
       
       toast({

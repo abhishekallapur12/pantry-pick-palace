@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { Product, CartItem, Order } from '@/types';
 import { useProducts, useCreateProduct, useUpdateProduct, useDeleteProduct } from '@/hooks/useProducts';
@@ -18,7 +19,8 @@ type StoreAction =
   | { type: 'ADD_TO_CART'; payload: Product }
   | { type: 'UPDATE_CART_QUANTITY'; payload: { productId: string; quantity: number } }
   | { type: 'REMOVE_FROM_CART'; payload: string }
-  | { type: 'CLEAR_CART' };
+  | { type: 'CLEAR_CART' }
+  | { type: 'UPDATE_PRODUCT_QUANTITY'; payload: { productId: string; newQuantity: number } };
 
 const CART_STORAGE_KEY = 'freshmart_cart';
 
@@ -59,6 +61,19 @@ const storeReducer = (state: StoreState, action: StoreAction): StoreState => {
       return { ...state, isLoading: action.payload };
     case 'LOAD_CART':
       return { ...state, cart: loadCartFromStorage() };
+    case 'UPDATE_PRODUCT_QUANTITY':
+      return {
+        ...state,
+        products: state.products.map(product =>
+          product.id === action.payload.productId
+            ? { 
+                ...product, 
+                quantity: action.payload.newQuantity,
+                inStock: action.payload.newQuantity > 0
+              }
+            : product
+        ),
+      };
     case 'ADD_TO_CART':
       const existingItem = state.cart.find(item => item.product.id === action.payload.id);
       if (existingItem) {
@@ -124,6 +139,7 @@ interface StoreContextType extends StoreState {
   deleteProduct: (id: string) => void;
   updateOrderStatus: (orderId: string, status: Order['status']) => void;
   refreshProducts: () => void;
+  updateProductQuantity: (productId: string, newQuantity: number) => void;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -225,6 +241,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     refetchProducts();
   };
 
+  const updateProductQuantity = (productId: string, newQuantity: number) => {
+    console.log('Updating product quantity in store:', productId, newQuantity);
+    dispatch({ type: 'UPDATE_PRODUCT_QUANTITY', payload: { productId, newQuantity } });
+  };
+
   const value = {
     ...state,
     addToCart,
@@ -238,6 +259,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     deleteProduct,
     updateOrderStatus,
     refreshProducts,
+    updateProductQuantity,
   };
 
   console.log('Store state:', { 
