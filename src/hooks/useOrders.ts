@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Order, CartItem } from '@/types';
@@ -7,9 +8,14 @@ export const useOrders = () => {
   return useQuery({
     queryKey: ['orders'],
     queryFn: async () => {
+      // Calculate date 2 days ago
+      const twoDaysAgo = new Date();
+      twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+
       const { data, error } = await supabase
         .from('orders')
         .select('*, order_items(*, products(*))')
+        .gte('created_at', twoDaysAgo.toISOString())
         .order('created_at', { ascending: false });
 
       if (error) {
