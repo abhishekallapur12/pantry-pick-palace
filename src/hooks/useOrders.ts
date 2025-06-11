@@ -105,16 +105,25 @@ export const useCreateOrder = () => {
 
         if (itemError) throw itemError;
 
-        // Update product quantity
-        const { error: updateError } = await supabase
+        // Update product quantity - get current quantity first, then update
+        const { data: currentProduct } = await supabase
           .from('products')
-          .update({ 
-            quantity: supabase.sql`quantity - ${item.quantity}`,
-            in_stock: supabase.sql`quantity - ${item.quantity} > 0`
-          })
-          .eq('id', item.product.id);
+          .select('quantity')
+          .eq('id', item.product.id)
+          .single();
 
-        if (updateError) throw updateError;
+        if (currentProduct) {
+          const newQuantity = currentProduct.quantity - item.quantity;
+          const { error: updateError } = await supabase
+            .from('products')
+            .update({ 
+              quantity: newQuantity,
+              in_stock: newQuantity > 0
+            })
+            .eq('id', item.product.id);
+
+          if (updateError) throw updateError;
+        }
       }
 
       return order;
