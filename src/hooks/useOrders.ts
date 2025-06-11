@@ -129,8 +129,12 @@ export const useCreateOrder = () => {
       return order;
     },
     onSuccess: () => {
+      // Invalidate both orders and products queries to refresh the data
       queryClient.invalidateQueries({ queryKey: ['orders'] });
       queryClient.invalidateQueries({ queryKey: ['products'] });
+      // Also invalidate user orders
+      queryClient.invalidateQueries({ queryKey: ['user-orders'] });
+      
       toast({
         title: "Order placed successfully!",
         description: "Your order has been submitted and product quantities have been updated.",

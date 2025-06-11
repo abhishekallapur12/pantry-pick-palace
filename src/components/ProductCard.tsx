@@ -19,7 +19,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const cartItem = cart.find(item => item.product.id === product.id);
   const quantity = cartItem?.quantity || 0;
   const isOutOfStock = !product.inStock || product.quantity <= 0;
-  const canAddMore = quantity < product.quantity;
+  const canAddMore = quantity < product.quantity && product.quantity > 0;
 
   const handleAddToCart = () => {
     if (canAddMore && product.quantity > 0) {
@@ -27,7 +27,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     } else {
       toast({
         title: "Cannot add to cart",
-        description: "Insufficient stock available",
+        description: isOutOfStock ? "This product is out of stock" : "Insufficient stock available",
         variant: "destructive",
       });
     }
@@ -76,6 +76,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           {quantity > 0 && (
             <p className="text-xs text-blue-600 font-medium">
               In cart: {quantity}
+            </p>
+          )}
+          {isOutOfStock && (
+            <p className="text-xs text-red-600 font-medium">
+              Out of Stock
             </p>
           )}
         </div>
