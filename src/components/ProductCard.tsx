@@ -6,6 +6,7 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Product } from '@/types';
 import { useStore } from '@/context/StoreContext';
+import { useToast } from '@/hooks/use-toast';
 
 interface ProductCardProps {
   product: Product;
@@ -13,6 +14,7 @@ interface ProductCardProps {
 
 const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const { addToCart, cart, updateCartQuantity } = useStore();
+  const { toast } = useToast();
   
   const cartItem = cart.find(item => item.product.id === product.id);
   const quantity = cartItem?.quantity || 0;
@@ -20,14 +22,26 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const canAddMore = quantity < product.quantity;
 
   const handleAddToCart = () => {
-    if (canAddMore) {
+    if (canAddMore && product.quantity > 0) {
       addToCart(product);
+    } else {
+      toast({
+        title: "Cannot add to cart",
+        description: "Insufficient stock available",
+        variant: "destructive",
+      });
     }
   };
 
   const handleIncrement = () => {
-    if (canAddMore) {
+    if (canAddMore && product.quantity > quantity) {
       updateCartQuantity(product.id, quantity + 1);
+    } else {
+      toast({
+        title: "Cannot add more",
+        description: "You've reached the maximum available stock",
+        variant: "destructive",
+      });
     }
   };
 
@@ -59,6 +73,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             </span>
             <div className={`h-2 w-2 rounded-full ${!isOutOfStock ? 'bg-green-500' : 'bg-red-500'}`} />
           </div>
+          {quantity > 0 && (
+            <p className="text-xs text-blue-600 font-medium">
+              In cart: {quantity}
+            </p>
+          )}
         </div>
       </CardContent>
 
@@ -72,6 +91,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             onClick={handleAddToCart}
             className="w-full animate-scale-in"
             size="sm"
+            disabled={product.quantity <= 0}
           >
             <Plus className="h-4 w-4 mr-2" />
             Add to Cart
@@ -91,7 +111,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
               variant="outline" 
               size="sm"
               onClick={handleIncrement}
-              disabled={!canAddMore}
+              disabled={!canAddMore || product.quantity <= quantity}
               className="h-8 w-8 p-0"
             >
               <Plus className="h-3 w-3" />

@@ -35,6 +35,7 @@ export const useOrders = () => {
             category: item.products.category,
             unit: item.products.unit,
             inStock: item.products.in_stock,
+            quantity: item.products.quantity,
             description: item.products.description,
           },
           quantity: item.quantity,
@@ -59,6 +60,21 @@ export const useCreateOrder = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
+      // Check if all products have sufficient stock
+      for (const item of orderData.items) {
+        const { data: product, error } = await supabase
+          .from('products')
+          .select('quantity, name')
+          .eq('id', item.product.id)
+          .single();
+
+        if (error) throw new Error(`Error checking stock for ${item.product.name}`);
+        
+        if (product.quantity < item.quantity) {
+          throw new Error(`Insufficient stock for ${product.name}. Available: ${product.quantity}, Requested: ${item.quantity}`);
+        }
+      }
+
       // Create the order
       const { data: order, error: orderError } = await supabase
         .from('orders')
@@ -75,27 +91,40 @@ export const useCreateOrder = () => {
 
       if (orderError) throw orderError;
 
-      // Create order items
-      const orderItems = orderData.items.map(item => ({
-        order_id: order.id,
-        product_id: item.product.id,
-        quantity: item.quantity,
-        price: item.product.price,
-      }));
+      // Create order items and update product quantities
+      for (const item of orderData.items) {
+        // Insert order item
+        const { error: itemError } = await supabase
+          .from('order_items')
+          .insert({
+            order_id: order.id,
+            product_id: item.product.id,
+            quantity: item.quantity,
+            price: item.product.price,
+          });
 
-      const { error: itemsError } = await supabase
-        .from('order_items')
-        .insert(orderItems);
+        if (itemError) throw itemError;
 
-      if (itemsError) throw itemsError;
+        // Update product quantity
+        const { error: updateError } = await supabase
+          .from('products')
+          .update({ 
+            quantity: supabase.sql`quantity - ${item.quantity}`,
+            in_stock: supabase.sql`quantity - ${item.quantity} > 0`
+          })
+          .eq('id', item.product.id);
+
+        if (updateError) throw updateError;
+      }
 
       return order;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
       toast({
         title: "Order placed successfully!",
-        description: "Your order has been submitted and is being processed.",
+        description: "Your order has been submitted and product quantities have been updated.",
       });
     },
     onError: (error: any) => {
